@@ -3,15 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planejamento de Negócio: Impressão 3D Decor Nerd</title>
+    <title>Forge3D Planner - Inteligência para Impressão 3D</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 
     <script>
@@ -20,10 +15,8 @@
                 extend: {
                     colors: {
                         'lore-paper': '#f5f5f0',
-                        'lore-stone': '#e6e6e0',
-                        'lore-dark': '#2d3748',
+                        'lore-dark': '#1a202c',
                         'lore-accent': '#d97706',
-                        'tech-blue': '#475569',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -35,6 +28,370 @@
     </script>
 
     <style>
+        body { background-color: #f8f8f2; color: #2d3748; scroll-behavior: smooth; }
+        .gemini-gradient { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #d97706 100%); }
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .image-container { aspect-ratio: 16 / 9; width: 100%; border-radius: 1rem; overflow: hidden; background: #000; position: relative; }
+        .image-container img { width: 100%; height: 100%; object-fit: cover; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Config Modal -->
+    <div id="api-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-2xl max-w-md w-full mx-4 shadow-2xl">
+            <h3 class="text-2xl font-display font-bold mb-4">Configurar Chave API</h3>
+            <p class="text-sm text-gray-600 mb-6">Para usar as funções de IA e manter sua segurança no GitHub, insira sua chave do Google AI Studio abaixo. Ela será salva apenas no seu navegador.</p>
+            <input type="password" id="api-key-input" placeholder="Cole sua chave aqui..." class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-4 focus:ring-2 focus:ring-lore-accent focus:outline-none">
+            <div class="flex gap-3">
+                <button onclick="saveApiKey()" class="flex-grow bg-lore-accent text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition">Salvar Chave</button>
+                <button onclick="toggleModal(false)" class="px-6 text-gray-500 font-medium">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <span class="text-2xl font-display font-bold text-lore-dark">Forge<span class="text-lore-accent">3D</span></span>
+                <div class="hidden md:flex space-x-6">
+                    <button onclick="scrollToSection('strategy')" class="text-sm font-medium hover:text-lore-accent">Estratégia</button>
+                    <button onclick="scrollToSection('ai-center')" class="text-sm font-medium text-indigo-600 font-bold">IA Visual</button>
+                    <button onclick="scrollToSection('calculator')" class="text-sm font-medium hover:text-lore-accent">Calculadora</button>
+                </div>
+                <button onclick="toggleModal(true)" class="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 transition" title="Configurações">⚙️</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24">
+
+        <!-- Hero -->
+        <section class="text-center">
+            <h1 class="text-4xl md:text-6xl font-display font-bold text-lore-dark mb-6 leading-tight">
+                Transforme sua Impressão 3D em <br><span class="text-lore-accent">R$ 6.600,00 Mensais</span>
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Estratégia focada em <strong>Lore & Artefatos</strong>. Menos "bonequinhos", mais valor percebido e exclusividade.
+            </p>
+        </section>
+
+        <!-- AI Center -->
+        <section id="ai-center" class="scroll-mt-24">
+            <div class="gemini-gradient p-6 md:p-12 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex flex-col lg:flex-row justify-between items-start gap-12">
+                        
+                        <!-- Left side: Text Tools -->
+                        <div class="w-full lg:w-1/2 space-y-8">
+                            <div>
+                                <h2 class="text-3xl font-display font-bold mb-2">Central de Inteligência Lore</h2>
+                                <p class="text-indigo-100 italic">Crie produtos únicos e narrativas nostálgicas.</p>
+                            </div>
+
+                            <div class="bg-white/10 p-6 rounded-2xl border border-white/20">
+                                <label class="block text-xs font-bold uppercase tracking-widest text-indigo-200 mb-2">Tema do Artefato</label>
+                                <div class="flex gap-2 mb-4">
+                                    <input type="text" id="lore-theme" placeholder="Ex: Medieval Gótico, Steampunk..." class="flex-grow bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-indigo-300 focus:ring-2 focus:ring-amber-400 focus:outline-none">
+                                    <button onclick="generateText('lore')" id="btn-lore" class="bg-amber-500 hover:bg-amber-600 px-6 rounded-xl font-bold transition flex items-center justify-center">
+                                        <div id="loader-lore" class="loading-spinner hidden"></div>
+                                        <span id="text-lore">Sugerir</span>
+                                    </button>
+                                </div>
+                                <div id="lore-results" class="text-sm bg-black/20 p-4 rounded-xl border border-white/5 min-h-[100px] max-h-[200px] overflow-y-auto whitespace-pre-line"></div>
+                            </div>
+
+                            <div class="bg-white/10 p-6 rounded-2xl border border-white/20">
+                                <label class="block text-xs font-bold uppercase tracking-widest text-indigo-200 mb-2">Gerador de Copy (Venda)</label>
+                                <div class="flex gap-2 mb-4">
+                                    <input type="text" id="piece-name" placeholder="Nome do produto para anúncio..." class="flex-grow bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-indigo-300 focus:ring-2 focus:ring-amber-400 focus:outline-none">
+                                    <button onclick="generateText('copy')" id="btn-copy" class="bg-indigo-500 hover:bg-indigo-600 px-6 rounded-xl font-bold transition flex items-center justify-center">
+                                        <div id="loader-copy" class="loading-spinner hidden"></div>
+                                        <span id="text-copy">Criar Anúncio</span>
+                                    </button>
+                                </div>
+                                <div id="copy-results" class="text-sm bg-black/20 p-4 rounded-xl border border-white/5 min-h-[100px] max-h-[200px] overflow-y-auto whitespace-pre-line"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right side: Image Tool -->
+                        <div class="w-full lg:w-1/2 flex flex-col h-full">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold">Visualização do Conceito</h3>
+                                <button onclick="generateImage()" id="btn-visual" class="bg-white/20 hover:bg-white/30 p-3 rounded-full transition flex items-center justify-center">
+                                    <span id="icon-visual">🔄</span>
+                                    <div id="loader-visual" class="loading-spinner hidden"></div>
+                                </button>
+                            </div>
+                            
+                            <div class="image-container flex items-center justify-center shadow-inner border border-white/10">
+                                <div id="image-placeholder" class="text-center p-8">
+                                    <span class="text-5xl block mb-4">🏺</span>
+                                    <p class="text-sm text-indigo-100">Clique no ícone de atualização para gerar o visual 3D.</p>
+                                </div>
+                                <img id="generated-image" class="hidden" alt="Concept Art">
+                            </div>
+                            <p class="mt-4 text-[10px] text-center text-indigo-200 tracking-widest uppercase">Tecnologia Imagen 4.0 - Gerando valor visual</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calculator -->
+        <section id="calculator" class="scroll-mt-24">
+            <div class="bg-lore-dark text-white rounded-[2.5rem] p-8 md:p-16 shadow-2xl">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    <div>
+                        <h2 class="text-3xl font-display font-bold mb-8">🛠️ Calculadora de Lucro</h2>
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Peso da Peça (g)</label>
+                                    <input type="number" id="weight" value="250" class="w-full bg-gray-800 border-none rounded-xl px-4 py-4 text-white text-xl font-bold focus:ring-2 focus:ring-lore-accent">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Tempo (h)</label>
+                                    <input type="number" id="time" value="8" class="w-full bg-gray-800 border-none rounded-xl px-4 py-4 text-white text-xl font-bold focus:ring-2 focus:ring-lore-accent">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Custo do Filamento (R$/kg)</label>
+                                <input type="number" id="fil-cost" value="120" class="w-full bg-gray-800 border-none rounded-xl px-4 py-4 text-white text-xl font-bold focus:ring-2 focus:ring-lore-accent">
+                            </div>
+                            <div class="p-4 bg-white/5 rounded-xl border border-white/5">
+                                <p class="text-xs text-gray-400 italic">Custo operacional base (energia + manutenção) estimado em R$ 3,50/hora.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col justify-center">
+                        <div class="bg-white rounded-3xl p-10 text-center shadow-xl">
+                            <span class="text-gray-500 uppercase font-bold text-xs tracking-widest mb-2 block">Venda Sugerida (Margem 3x)</span>
+                            <div id="res-price" class="text-6xl font-display font-bold text-lore-accent mb-4">R$ 0,00</div>
+                            <div class="bg-green-100 text-green-700 py-2 px-6 rounded-full inline-block font-bold">Lucro: <span id="res-profit">R$ 0,00</span></div>
+                            
+                            <div class="mt-8 pt-8 border-t border-gray-100">
+                                <canvas id="chart-costs" class="max-h-48 mx-auto"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategy -->
+        <section id="strategy" class="scroll-mt-24 grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
+                <h3 class="text-2xl font-display font-bold mb-6 border-b pb-4">A Lógica do Faturamento</h3>
+                <p class="text-gray-600 mb-4">Para chegar aos <strong>R$ 6.600</strong>, você não precisa de 1000 vendas. Você precisa de peças de alto ticket.</p>
+                <ul class="space-y-4">
+                    <li class="flex items-center gap-3"><span class="bg-amber-100 text-amber-600 p-2 rounded-lg font-bold">1</span> 22 Vendas de R$ 300,00</li>
+                    <li class="flex items-center gap-3"><span class="bg-amber-100 text-amber-600 p-2 rounded-lg font-bold">2</span> Foque no acabamento manual (pintura/efeitos)</li>
+                    <li class="flex items-center gap-3"><span class="bg-amber-100 text-amber-600 p-2 rounded-lg font-bold">3</span> Venda a história, use o Copywriter de IA</li>
+                </ul>
+            </div>
+            <div class="bg-white p-10 rounded-3xl shadow-lg border border-gray-100">
+                <h3 class="text-2xl font-display font-bold mb-6 border-b pb-4">Hardware Ideal</h3>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-bold">Bambu Lab A1 Combo</p>
+                            <p class="text-xs text-gray-500">Multicolor nativo, precisão absurda.</p>
+                        </div>
+                        <span class="text-green-600 font-bold text-sm">RECOMENDADO</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-bold">Kobra 3 Combo</p>
+                            <p class="text-xs text-gray-500">Custo-benefício e secador integrado.</p>
+                        </div>
+                        <span class="text-blue-600 font-bold text-sm">ECONÔMICO</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- API & State Management ---
+        let API_KEY = localStorage.getItem('GEMINI_API_KEY') || "";
+        let costChart = null;
+
+        function toggleModal(show) {
+            const modal = document.getElementById('api-modal');
+            modal.classList.toggle('hidden', !show);
+            if (show) document.getElementById('api-key-input').value = API_KEY;
+        }
+
+        function saveApiKey() {
+            const val = document.getElementById('api-key-input').value.trim();
+            if (!val) return alert("Insira uma chave válida!");
+            API_KEY = val;
+            localStorage.setItem('GEMINI_API_KEY', val);
+            toggleModal(false);
+            alert("Chave salva localmente!");
+        }
+
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- Gemini Service ---
+        async function fetchGemini(endpoint, payload) {
+            if (!API_KEY) {
+                toggleModal(true);
+                throw new Error("API Key missing");
+            }
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${endpoint}?key=${API_KEY}`;
+            
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error("Erro na API");
+                    return await response.json();
+                } catch (e) {
+                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+                }
+            }
+            throw new Error("Falha após tentativas");
+        }
+
+        // --- Logic Handlers ---
+        async function generateText(type) {
+            const inputId = type === 'lore' ? 'lore-theme' : 'piece-name';
+            const outputId = type === 'lore' ? 'lore-results' : 'copy-results';
+            const loaderId = type === 'lore' ? 'loader-lore' : 'loader-copy';
+            const textId = type === 'lore' ? 'text-lore' : 'text-copy';
+            
+            const promptInput = document.getElementById(inputId).value;
+            if (!promptInput) return alert("Preencha o campo primeiro!");
+
+            const loader = document.getElementById(loaderId);
+            const textSpan = document.getElementById(textId);
+            const output = document.getElementById(outputId);
+
+            loader.classList.remove('hidden');
+            textSpan.classList.add('hidden');
+            output.innerText = "Consultando a IA...";
+
+            const systemPrompt = type === 'lore' 
+                ? "Você é um consultor criativo de impressão 3D nerd adulta. Gere 3 ideias de artefatos épicos (não bonecos) baseados no tema."
+                : "Você é um mestre de copy para produtos nerds exclusivos. Gere um anúncio emocionante focado em nostalgia.";
+
+            try {
+                const data = await fetchGemini('gemini-2.5-flash-preview-09-2025:generateContent', {
+                    contents: [{ parts: [{ text: promptInput }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                });
+                output.innerText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Erro na resposta.";
+            } catch (e) {
+                output.innerText = "Erro ao conectar. Verifique sua chave API.";
+            } finally {
+                loader.classList.add('hidden');
+                textSpan.classList.remove('hidden');
+            }
+        }
+
+        async function generateImage() {
+            const theme = document.getElementById('lore-theme').value || "Nerd Artifact decoration 3d printed";
+            const loader = document.getElementById('loader-visual');
+            const icon = document.getElementById('icon-visual');
+            const img = document.getElementById('generated-image');
+            const placeholder = document.getElementById('image-placeholder');
+
+            loader.classList.remove('hidden');
+            icon.classList.add('hidden');
+
+            const prompt = `Highly detailed 3D printed artifact, lore-rich, nostalgic nerd decor, realistic materials, cinematic lighting, 16:9 ratio, themed as: ${theme}`;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${API_KEY}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ instances: { prompt: prompt }, parameters: { sampleCount: 1 } })
+                });
+                const data = await response.json();
+                
+                if (data.predictions?.[0]) {
+                    img.src = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                    img.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                }
+            } catch (e) {
+                alert("Erro ao gerar imagem. Verifique sua chave API.");
+            } finally {
+                loader.classList.add('hidden');
+                icon.classList.remove('hidden');
+            }
+        }
+
+        // --- Calculator Engine ---
+        function calculate() {
+            const weight = parseFloat(document.getElementById('weight').value) || 0;
+            const time = parseFloat(document.getElementById('time').value) || 0;
+            const filCost = parseFloat(document.getElementById('fil-cost').value) || 0;
+
+            const matCost = (weight / 1000) * filCost;
+            const operationalCost = time * 3.5;
+            const totalCost = matCost + operationalCost;
+
+            const sellPrice = totalCost * 3.5; // Margem de 250%
+            const profit = sellPrice - totalCost;
+
+            document.getElementById('res-price').innerText = sellPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('res-profit').innerText = profit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            updateChart(matCost, operationalCost, profit);
+        }
+
+        function updateChart(mat, ops, pro) {
+            const ctx = document.getElementById('chart-costs').getContext('2d');
+            if (costChart) costChart.destroy();
+            
+            costChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Material', 'Operação', 'Lucro'],
+                    datasets: [{
+                        data: [mat, ops, pro],
+                        backgroundColor: ['#fbbf24', '#475569', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } }
+                }
+            });
+        }
+
+        // --- Init ---
+        window.onload = () => {
+            calculate();
+            document.querySelectorAll('input').forEach(i => i.addEventListener('input', calculate));
+            if (!API_KEY) toggleModal(true);
+        };
+    </script>
+</body>
+</html>    <style>
         body { background-color: #f5f5f0; color: #2d3748; }
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .chart-container { position: relative; width: 100%; max-width: 600px; margin: auto; height: 300px; }
